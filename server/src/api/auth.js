@@ -86,7 +86,7 @@ router.post('/login', async (req, res) => {
     
     // Validate input
     if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide email and password' });
+      return res.status(400).json({ message: 'Please provide an email and password' });
     }
     
     // Check if user exists
