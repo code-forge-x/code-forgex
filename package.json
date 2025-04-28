@@ -1,0 +1,21 @@
+﻿{
+  "name": "codeforegx",
+  "version": "1.0.0",
+  "description": "AI-assisted financial trading code generation platform",
+  "scripts": {
+    "start": "cd server && npm start",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "docker:up": "docker-compose up",
+    "docker:build": "docker-compose up --build -d",
+    "docker:down": "docker-compose down",
+    "generate-jwt": "node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
+    "test-connections": "docker-compose exec server node src/utils/test-connections.js",
+    "create-admin": "docker-compose exec server node src/utils/create-admin.js",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+}

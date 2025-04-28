@@ -1,0 +1,21 @@
+﻿# Node modules
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+
+# Build output
+dist/
+build/
+
+# VS Code settings
+.vscode/
