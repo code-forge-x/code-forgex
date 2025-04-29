@@ -1,43 +1,42 @@
-// server/src/models/User.js
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
+const UserSchema = new Schema({
+  name: { 
+    type: String, 
+    required: true 
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true 
   },
-  password: {
-    type: String,
-    required: true
+  password: { 
+    type: String, 
+    required: true 
   },
-  isAdmin: {
-    type: Boolean,
-    default: false
+  role: { 
+    type: String, 
+    enum: ['admin', 'developer', 'client'],
+    default: 'client'
   },
-  projects: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project'
+  projects: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Project' 
   }],
-  createdAt: {
-    type: Date,
-    default: Date.now
+  fingerprint: { 
+    type: String 
   },
-  lastLogin: {
-    type: Date,
-    default: null
+  preferences: { 
+    type: Object 
+  },
+  created: { 
+    type: Date, 
+    default: Date.now 
+  },
+  lastActive: { 
+    type: Date 
   }
-}, { timestamps: true });
+});
 
-// User model methods can be added here
-
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = mongoose.model('User', UserSchema);

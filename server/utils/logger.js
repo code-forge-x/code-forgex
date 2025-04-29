@@ -11,7 +11,7 @@ const logFormat = winston.format.combine(
 
 // Create logger instance
 const logger = winston.createLogger({
-  level: config.loggingLevel || 'info',
+  level: config.loggingLevel,
   format: logFormat,
   defaultMeta: { service: 'codeforegx-api' },
   transports: [
@@ -21,7 +21,7 @@ const logger = winston.createLogger({
 });
 
 // Add console transport in development
-if (!config.environment || config.environment !== 'production') {
+if (config.environment !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),

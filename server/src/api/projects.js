@@ -1,60 +1,184 @@
 const express = require('express');
-const Project = require('../models/Project');
-const auth = require('../middleware/auth'); // 
-const logger = require('../utils/logger');
 const router = express.Router();
+const auth = require('../middleware/auth');
 
-// Create project
-router.post('/', auth.authenticate, async (req, res) => {
+/**
+ * Projects Routes
+ * Handles project management endpoints
+ */
+
+// @route    GET /api/projects
+// @desc     Get all projects for user
+// @access   Private
+router.get('/', auth, async (req, res) => {
   try {
-    const { name, description, requirements, financialDomain, tradingVenue, techStack } = req.body;
+    // For now, return mock projects
+    // Later, implement logic to fetch user's projects
+    res.json([
+      {
+        _id: 'project-1',
+        name: 'Financial Trading System',
+        description: 'Automated trading platform for financial markets',
+        status: 'requirements_gathering',
+        owner: req.user.id,
+        created: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        updated: new Date()
+      },
+      {
+        _id: 'project-2',
+        name: 'Risk Management Dashboard',
+        description: 'Real-time risk analytics and reporting',
+        status: 'blueprint_generation',
+        owner: req.user.id,
+        created: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
+        updated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
+      }
+    ]);
+  } catch (err) {
+    console.error(`Error fetching projects: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    POST /api/projects
+// @desc     Create new project
+// @access   Private
+router.post('/', auth, async (req, res) => {
+  try {
+    const { name, description, financialDomain, tradingVenue } = req.body;
     
-    const project = new Project({
-      name,
-      description,
-      requirements,
-      financialDomain,
-      tradingVenue: tradingVenue || 'multi_asset',
-      techStack,
-      owner: req.user.id
+    // For now, return a mock created project
+    // Later, implement actual project creation
+    res.status(201).json({
+      _id: `project-${Date.now()}`,
+      name: name || 'New Project',
+      description: description || 'Project description',
+      status: 'created',
+      owner: req.user.id,
+      financialDomain: financialDomain || 'general',
+      tradingVenue: tradingVenue || 'not specified',
+      created: new Date(),
+      updated: new Date()
     });
-    
-    await project.save();
-    res.status(201).json(project);
-  } catch (error) {
-    logger.error('Create project error:', error);
+  } catch (err) {
+    console.error(`Error creating project: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Get all projects for user
-router.get('/', auth.authenticate, async (req, res) => {
+// @route    GET /api/projects/:projectId
+// @desc     Get project details
+// @access   Private
+router.get('/:projectId', auth, async (req, res) => {
   try {
-    const projects = await Project.find({ owner: req.user.id }).sort({ createdAt: -1 });
-    res.json(projects);
-  } catch (error) {
-    logger.error('Get projects error:', error);
+    const { projectId } = req.params;
+    
+    // For now, return a mock project
+    // Later, implement logic to fetch specific project
+    res.json({
+      _id: projectId,
+      name: 'Project Details',
+      description: 'Detailed project information',
+      status: 'requirements_gathering',
+      owner: req.user.id,
+      collaborators: [],
+      requirements: 'Sample requirements text',
+      blueprint: null,
+      techStack: ['React', 'Node.js', 'MongoDB'],
+      financialDomain: 'trading',
+      tradingVenue: 'crypto',
+      components: [],
+      created: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      updated: new Date()
+    });
+  } catch (err) {
+    console.error(`Error fetching project: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Get project by id
-router.get('/:id', auth.authenticate, async (req, res) => {
+// @route    PUT /api/projects/:projectId
+// @desc     Update project
+// @access   Private
+router.put('/:projectId', auth, async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id);
+    const { projectId } = req.params;
+    const updateData = req.body;
     
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
+    // For now, return the updated project as received
+    // Later, implement actual update logic
+    res.json({
+      _id: projectId,
+      ...updateData,
+      updated: new Date()
+    });
+  } catch (err) {
+    console.error(`Error updating project: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    DELETE /api/projects/:projectId
+// @desc     Delete project
+// @access   Private
+router.delete('/:projectId', auth, async (req, res) => {
+  try {
+    const { projectId } = req.params;
     
-    // Check if user owns the project
-    if (project.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
+    // For now, return success message
+    // Later, implement actual deletion logic
+    res.json({ 
+      message: 'Project deleted successfully',
+      projectId 
+    });
+  } catch (err) {
+    console.error(`Error deleting project: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    POST /api/projects/:projectId/collaborators
+// @desc     Add collaborator to project
+// @access   Private
+router.post('/:projectId/collaborators', auth, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { email, role } = req.body;
     
-    res.json(project);
-  } catch (error) {
-    logger.error('Get project error:', error);
+    // For now, return mock response
+    // Later, implement actual collaborator addition
+    res.status(201).json({
+      projectId,
+      collaborator: {
+        email,
+        role: role || 'viewer',
+        added: new Date()
+      }
+    });
+  } catch (err) {
+    console.error(`Error adding collaborator: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    PUT /api/projects/:projectId/requirements
+// @desc     Update project requirements
+// @access   Private
+router.put('/:projectId/requirements', auth, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { requirements } = req.body;
+    
+    // For now, return mock response
+    // Later, implement actual requirements update
+    res.json({
+      projectId,
+      requirements,
+      updated: new Date(),
+      status: 'requirements_completed'
+    });
+  } catch (err) {
+    console.error(`Error updating requirements: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });

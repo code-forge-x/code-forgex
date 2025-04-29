@@ -1,50 +1,45 @@
-// server/src/models/Prompt.js
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const promptSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
+const PromptSchema = new Schema({
+  name: { 
+    type: String, 
+    required: true, 
+    unique: true 
   },
-  version: {
-    type: Number,
-    required: true,
-    default: 1
+  version: { 
+    type: Number, 
+    required: true, 
+    default: 1 
   },
-  content: {
-    type: String,
-    required: true
+  content: { 
+    type: String, 
+    required: true 
   },
-  active: {
-    type: Boolean,
-    default: true
-  },
-  category: {
-    type: String,
-    enum: ['financial', 'support', 'development', 'general'],
+  category: { 
+    type: String, 
+    enum: ['general', 'requirements', 'blueprint', 'component', 'support'],
     default: 'general'
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  active: { 
+    type: Boolean, 
+    default: true 
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  createdBy: { 
+    type: String, 
+    default: 'system' 
+  },
+  created: { 
+    type: Date, 
+    default: Date.now 
+  },
+  updated: { 
+    type: Date, 
+    default: Date.now 
   }
-}, { timestamps: true });
-
-// Create a compound index on name and version
-promptSchema.index({ name: 1, version: 1 }, { unique: true });
-
-// Pre-save hook to update the updatedAt field
-promptSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  next();
 });
 
-const Prompt = mongoose.model('Prompt', promptSchema);
+// Compound index to ensure name+version uniqueness
+PromptSchema.index({ name: 1, version: 1 }, { unique: true });
 
-module.exports = Prompt;
+module.exports = mongoose.model('Prompt', PromptSchema);

@@ -1,16 +1,14 @@
-const express = require('express');
-const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('../config/default');
 const User = require('../models/User');
-const auth = require('../middleware/auth');
 const logger = require('../utils/logger');
 
-// @route    POST /api/auth/register
-// @desc     Register a user
-// @access   Public
-router.post('/register', async (req, res) => {
+/**
+ * Register a new user
+ * @route POST /api/auth/register
+ */
+exports.register = async (req, res) => {
   try {
     const { name, email, password, role = 'client' } = req.body;
     
@@ -57,12 +55,13 @@ router.post('/register', async (req, res) => {
     logger.error(`Registration error: ${err.message}`);
     res.status(500).json({ message: 'Server error during registration' });
   }
-});
+};
 
-// @route    POST /api/auth/login
-// @desc     Login a user & get token
-// @access   Public
-router.post('/login', async (req, res) => {
+/**
+ * Login a user
+ * @route POST /api/auth/login
+ */
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -106,12 +105,13 @@ router.post('/login', async (req, res) => {
     logger.error(`Login error: ${err.message}`);
     res.status(500).json({ message: 'Server error during login' });
   }
-});
+};
 
-// @route    GET /api/auth/verify
-// @desc     Verify token & get user
-// @access   Private
-router.get('/verify', auth, async (req, res) => {
+/**
+ * Verify token and get user
+ * @route GET /api/auth/verify
+ */
+exports.verify = async (req, res) => {
   try {
     // User is already loaded in req by auth middleware
     const user = await User.findById(req.user.id).select('-password');
@@ -137,6 +137,4 @@ router.get('/verify', auth, async (req, res) => {
     logger.error(`Token verification error: ${err.message}`);
     res.status(500).json({ valid: false, message: 'Server error during verification' });
   }
-});
-
-module.exports = router;
+};

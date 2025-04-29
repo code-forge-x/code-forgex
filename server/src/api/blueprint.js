@@ -1,200 +1,141 @@
-// server/src/api/blueprint.js
-/**
- * Blueprint API Routes
- * Handles blueprint generation, file extraction, and component analysis
- * Part of the self-building system MVP
- */
 const express = require('express');
-const router = express.Router({ mergeParams: true }); // To access projectId from parent router
-const { simpleBlueprintService, basicExtractionService } = require('../services');
+const router = express.Router({ mergeParams: true }); // mergeParams allows access to projectId param
 const auth = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
-const os = require('os');
-
-// Set up file upload
-const upload = multer({ 
-  dest: path.join(os.tmpdir(), 'blueprint-uploads'),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-    files: 50 // Max 50 files
-  }
-});
 
 /**
- * @route   POST /api/projects/:projectId/blueprint/generate
- * @desc    Generate a blueprint from uploaded code files
- * @access  Private
+ * Blueprint Routes
+ * Handles project blueprint management
  */
-router.post('/generate', auth.projectAccess, upload.array('files'), async (req, res) => {
-  try {
-    const projectId = req.params.projectId;
-    const files = req.files;
-    
-    if (!files || files.length === 0) {
-      return res.status(400).json({ message: 'No files uploaded' });
-    }
-    
-    // Create temp directory for extraction
-    const extractionDir = path.join(os.tmpdir(), `blueprint-${projectId}-${Date.now()}`);
-    await fs.mkdir(extractionDir, { recursive: true });
-    
-    // Move uploaded files to extraction directory
-    for (const file of files) {
-      const destPath = path.join(extractionDir, file.originalname);
-      await fs.rename(file.path, destPath);
-    }
-    
-    // Generate blueprint
-    const blueprint = await simpleBlueprintService.generateBlueprintFromDirectory(
-      projectId,
-      extractionDir
-    );
-    
-    // Clean up temp directory
-    setTimeout(async () => {
-      try {
-        await fs.rm(extractionDir, { recursive: true, force: true });
-      } catch (err) {
-        console.error('Error cleaning up temp directory:', err);
-      }
-    }, 60000); // Clean up after 1 minute
-    
-    res.json(blueprint);
-  } catch (error) {
-    console.error('Error generating blueprint:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
-/**
- * @route   POST /api/projects/:projectId/blueprint/analyze
- * @desc    Analyze a single file and extract information
- * @access  Private
- */
-router.post('/analyze', auth.projectAccess, upload.single('file'), async (req, res) => {
+// @route    GET /api/projects/:projectId/blueprint
+// @desc     Get project blueprint
+// @access   Private
+router.get('/', auth, async (req, res) => {
   try {
-    const file = req.file;
+    const { projectId } = req.params;
     
-    if (!file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
-    
-    // Extract from file
-    const extractedInfo = await basicExtractionService.extractFromFile(file.path);
-    
-    // Clean up temp file
-    setTimeout(async () => {
-      try {
-        await fs.unlink(file.path);
-      } catch (err) {
-        console.error('Error cleaning up temp file:', err);
-      }
-    }, 10000); // Clean up after 10 seconds
-    
-    res.json(extractedInfo);
-  } catch (error) {
-    console.error('Error analyzing file:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-/**
- * @route   GET /api/projects/:projectId/blueprint
- * @desc    Get the latest blueprint for a project
- * @access  Private
- */
-router.get('/', auth.projectAccess, async (req, res) => {
-  try {
-    const projectId = req.params.projectId;
-    
-    // In a full implementation, we would retrieve the saved blueprint from a database
-    // For MVP, we'll return a mock response
-    // TODO: Implement blueprint storage and retrieval in Phase 4
-    
-    // Mock blueprint structure to match the guide's requirements
-    const mockBlueprint = {
-      projectId,
-      components: [
-        { name: 'Example', file: 'Example.jsx', type: 'ui', language: 'javascript' }
-      ],
-      services: [
-        { name: 'ExampleService', file: 'exampleService.js', type: 'service', methods: ['get', 'update'], language: 'javascript' }
-      ],
-      models: [
-        { name: 'ExampleModel', file: 'ExampleModel.js', type: 'mongoose', fields: ['name', 'content'], language: 'javascript' }
-      ],
-      apis: [
-        { name: 'ExampleAPI', file: 'exampleApi.js', type: 'express', endpoints: ['/api/example'], language: 'javascript' }
-      ],
-      relationships: [
-        { from: 'Example', to: 'ExampleService', type: 'uses' }
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    res.json(mockBlueprint);
-  } catch (error) {
-    console.error('Error getting blueprint:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-/**
- * @route   POST /api/projects/:projectId/blueprint
- * @desc    Save a blueprint
- * @access  Private
- */
-router.post('/', auth.projectAccess, async (req, res) => {
-  try {
-    const projectId = req.params.projectId;
-    const blueprint = req.body;
-    
-    if (!blueprint) {
-      return res.status(400).json({ message: 'Blueprint data is required' });
-    }
-    
-    // TODO: Implement blueprint storage
-    // For MVP, we'll just return the blueprint with a success message
-    
+    // For now, return a mock blueprint
+    // Later, implement logic to fetch actual blueprint
     res.json({
-      message: 'Blueprint saved successfully',
       projectId,
-      blueprint
+      blueprint: {
+        components: [],
+        connections: [],
+        metadata: {
+          name: "Project Blueprint",
+          version: 1,
+          status: "draft"
+        }
+      }
     });
-  } catch (error) {
-    console.error('Error saving blueprint:', error);
+  } catch (err) {
+    console.error(`Error fetching blueprint: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-/**
- * @route   POST /api/projects/:projectId/blueprint/extract
- * @desc    Extract components from a blueprint
- * @access  Private
- */
-router.post('/extract', auth.projectAccess, async (req, res) => {
+// @route    POST /api/projects/:projectId/blueprint
+// @desc     Generate new blueprint
+// @access   Private
+router.post('/', auth, async (req, res) => {
   try {
-    const projectId = req.params.projectId;
+    const { projectId } = req.params;
+    const { requirements, techStack } = req.body;
+    
+    // For now, return a mock response
+    // Later, implement actual blueprint generation
+    res.status(201).json({
+      projectId,
+      blueprint: {
+        components: [
+          { id: 'comp-1', name: 'Authentication Service', type: 'service' },
+          { id: 'comp-2', name: 'User Management', type: 'service' },
+          { id: 'comp-3', name: 'Data Storage', type: 'database' }
+        ],
+        connections: [
+          { source: 'comp-1', target: 'comp-2' },
+          { source: 'comp-2', target: 'comp-3' }
+        ],
+        metadata: {
+          name: "Generated Blueprint",
+          version: 1,
+          status: "draft",
+          generatedFrom: { requirements, techStack }
+        }
+      }
+    });
+  } catch (err) {
+    console.error(`Error generating blueprint: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    PUT /api/projects/:projectId/blueprint
+// @desc     Update existing blueprint
+// @access   Private
+router.put('/', auth, async (req, res) => {
+  try {
+    const { projectId } = req.params;
     const { blueprint } = req.body;
     
-    if (!blueprint) {
-      return res.status(400).json({ message: 'Blueprint data is required' });
-    }
-    
-    // Extract components from blueprint
-    // For MVP, we'll just return the components from the blueprint
-    
+    // For now, return the updated blueprint as received
+    // Later, implement actual update logic
     res.json({
-      components: blueprint.components || [],
-      services: blueprint.services || [],
-      models: blueprint.models || [],
-      apis: blueprint.apis || []
+      projectId,
+      blueprint,
+      updated: new Date()
     });
-  } catch (error) {
-    console.error('Error extracting from blueprint:', error);
+  } catch (err) {
+    console.error(`Error updating blueprint: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    POST /api/projects/:projectId/blueprint/validate
+// @desc     Validate blueprint architecture
+// @access   Private
+router.post('/validate', auth, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { blueprint } = req.body;
+    
+    // For now, return mock validation results
+    // Later, implement actual validation logic
+    res.json({
+      valid: true,
+      issues: [],
+      projectId,
+      validatedAt: new Date()
+    });
+  } catch (err) {
+    console.error(`Error validating blueprint: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    GET /api/projects/:projectId/blueprint/export
+// @desc     Export blueprint in specified format
+// @access   Private
+router.get('/export', auth, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { format = 'json' } = req.query;
+    
+    // For now, return mock export data
+    // Later, implement actual export logic for different formats
+    res.json({
+      projectId,
+      format,
+      data: {
+        exported: true,
+        blueprint: {
+          components: [],
+          connections: []
+        }
+      }
+    });
+  } catch (err) {
+    console.error(`Error exporting blueprint: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });

@@ -1,14 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth');
-const { adminOnly } = require('../middleware/roleAuth');
 const promptManager = require('../services/promptManager');
 const logger = require('../utils/logger');
 
-// @route    GET /api/prompts
-// @desc     Get all prompt templates
-// @access   Admin only
-router.get('/', auth, adminOnly, async (req, res) => {
+/**
+ * Get all prompt templates
+ * @route GET /api/prompts
+ */
+exports.getAllPrompts = async (req, res) => {
   try {
     const prompts = await promptManager.getAllPromptTemplates();
     res.json(prompts);
@@ -16,26 +13,13 @@ router.get('/', auth, adminOnly, async (req, res) => {
     logger.error(`Error fetching prompts: ${err.message}`);
     res.status(500).json({ message: 'Server error fetching prompts' });
   }
-});
+};
 
-// @route    POST /api/prompts
-// @desc     Create new prompt template
-// @access   Admin only
-router.post('/', auth, adminOnly, async (req, res) => {
-  try {
-    const templateData = req.body;
-    const newTemplate = await promptManager.createPromptTemplate(templateData);
-    res.status(201).json(newTemplate);
-  } catch (err) {
-    logger.error(`Error creating prompt: ${err.message}`);
-    res.status(500).json({ message: 'Server error creating prompt' });
-  }
-});
-
-// @route    GET /api/prompts/:name
-// @desc     Get latest version of prompt by name
-// @access   Admin only
-router.get('/:name', auth, adminOnly, async (req, res) => {
+/**
+ * Get prompt template by name
+ * @route GET /api/prompts/:name
+ */
+exports.getPromptByName = async (req, res) => {
   try {
     const { name } = req.params;
     const prompt = await promptManager.getPromptTemplate(name);
@@ -49,12 +33,13 @@ router.get('/:name', auth, adminOnly, async (req, res) => {
     logger.error(`Error fetching prompt by name: ${err.message}`);
     res.status(500).json({ message: 'Server error fetching prompt' });
   }
-});
+};
 
-// @route    GET /api/prompts/:name/:version
-// @desc     Get specific version of prompt
-// @access   Admin only
-router.get('/:name/:version', auth, adminOnly, async (req, res) => {
+/**
+ * Get specific version of prompt template
+ * @route GET /api/prompts/:name/:version
+ */
+exports.getPromptVersion = async (req, res) => {
   try {
     const { name, version } = req.params;
     const prompt = await promptManager.getPromptTemplate(name, parseInt(version));
@@ -68,12 +53,28 @@ router.get('/:name/:version', auth, adminOnly, async (req, res) => {
     logger.error(`Error fetching prompt version: ${err.message}`);
     res.status(500).json({ message: 'Server error fetching prompt version' });
   }
-});
+};
 
-// @route    PUT /api/prompts/:name/:version
-// @desc     Update prompt template
-// @access   Admin only
-router.put('/:name/:version', auth, adminOnly, async (req, res) => {
+/**
+ * Create new prompt template
+ * @route POST /api/prompts
+ */
+exports.createPrompt = async (req, res) => {
+  try {
+    const templateData = req.body;
+    const newTemplate = await promptManager.createPromptTemplate(templateData);
+    res.status(201).json(newTemplate);
+  } catch (err) {
+    logger.error(`Error creating prompt: ${err.message}`);
+    res.status(500).json({ message: 'Server error creating prompt' });
+  }
+};
+
+/**
+ * Update prompt template
+ * @route PUT /api/prompts/:name/:version
+ */
+exports.updatePrompt = async (req, res) => {
   try {
     const { name, version } = req.params;
     const updateData = req.body;
@@ -89,12 +90,13 @@ router.put('/:name/:version', auth, adminOnly, async (req, res) => {
     logger.error(`Error updating prompt: ${err.message}`);
     res.status(500).json({ message: 'Server error updating prompt' });
   }
-});
+};
 
-// @route    GET /api/prompts/:name/versions
-// @desc     Get versions of a prompt template
-// @access   Admin only
-router.get('/:name/versions', auth, adminOnly, async (req, res) => {
+/**
+ * Get versions of a prompt template
+ * @route GET /api/prompts/:name/versions
+ */
+exports.getPromptVersions = async (req, res) => {
   try {
     const { name } = req.params;
     const versions = await promptManager.getPromptVersions(name);
@@ -103,12 +105,13 @@ router.get('/:name/versions', auth, adminOnly, async (req, res) => {
     logger.error(`Error fetching prompt versions: ${err.message}`);
     res.status(500).json({ message: 'Server error fetching versions' });
   }
-});
+};
 
-// @route    GET /api/prompts/:name/compare/:oldVersion/:newVersion
-// @desc     Compare two versions of a prompt template
-// @access   Admin only
-router.get('/:name/compare/:oldVersion/:newVersion', auth, adminOnly, async (req, res) => {
+/**
+ * Compare two versions of a prompt template
+ * @route GET /api/prompts/:name/compare/:oldVersion/:newVersion
+ */
+exports.compareVersions = async (req, res) => {
   try {
     const { name, oldVersion, newVersion } = req.params;
     
@@ -123,12 +126,13 @@ router.get('/:name/compare/:oldVersion/:newVersion', auth, adminOnly, async (req
     logger.error(`Error comparing prompt versions: ${err.message}`);
     res.status(500).json({ message: 'Server error comparing versions' });
   }
-});
+};
 
-// @route    POST /api/prompts/test
-// @desc     Test prompt template with variables
-// @access   Admin only
-router.post('/test', auth, adminOnly, async (req, res) => {
+/**
+ * Test prompt template with variables
+ * @route POST /api/prompts/test
+ */
+exports.testPrompt = async (req, res) => {
   try {
     const { promptId, variables } = req.body;
     
@@ -142,12 +146,13 @@ router.post('/test', auth, adminOnly, async (req, res) => {
     logger.error(`Error testing prompt: ${err.message}`);
     res.status(500).json({ message: 'Server error testing prompt' });
   }
-});
+};
 
-// @route    GET /api/prompts/performance
-// @desc     Get prompt performance metrics
-// @access   Admin only
-router.get('/performance', auth, adminOnly, async (req, res) => {
+/**
+ * Get prompt performance metrics
+ * @route GET /api/prompts/performance
+ */
+exports.getPerformanceMetrics = async (req, res) => {
   try {
     const { promptId, timeRange } = req.query;
     
@@ -161,12 +166,13 @@ router.get('/performance', auth, adminOnly, async (req, res) => {
     logger.error(`Error fetching performance metrics: ${err.message}`);
     res.status(500).json({ message: 'Server error fetching metrics' });
   }
-});
+};
 
-// @route    GET /api/prompts/components
-// @desc     Get all prompt components
-// @access   Admin only
-router.get('/components', auth, adminOnly, async (req, res) => {
+/**
+ * Get all prompt components
+ * @route GET /api/prompts/components
+ */
+exports.getPromptComponents = async (req, res) => {
   try {
     const { category } = req.query;
     const components = await promptManager.getPromptComponents(category);
@@ -175,12 +181,13 @@ router.get('/components', auth, adminOnly, async (req, res) => {
     logger.error(`Error fetching prompt components: ${err.message}`);
     res.status(500).json({ message: 'Server error fetching components' });
   }
-});
+};
 
-// @route    POST /api/prompts/components
-// @desc     Create prompt component
-// @access   Admin only
-router.post('/components', auth, adminOnly, async (req, res) => {
+/**
+ * Create prompt component
+ * @route POST /api/prompts/components
+ */
+exports.createPromptComponent = async (req, res) => {
   try {
     const componentData = req.body;
     const newComponent = await promptManager.createPromptComponent(componentData);
@@ -189,12 +196,13 @@ router.post('/components', auth, adminOnly, async (req, res) => {
     logger.error(`Error creating prompt component: ${err.message}`);
     res.status(500).json({ message: 'Server error creating component' });
   }
-});
+};
 
-// @route    PUT /api/prompts/components/:id
-// @desc     Update prompt component
-// @access   Admin only
-router.put('/components/:id', auth, adminOnly, async (req, res) => {
+/**
+ * Update prompt component
+ * @route PUT /api/prompts/components/:id
+ */
+exports.updatePromptComponent = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -205,12 +213,13 @@ router.put('/components/:id', auth, adminOnly, async (req, res) => {
     logger.error(`Error updating prompt component: ${err.message}`);
     res.status(500).json({ message: 'Server error updating component' });
   }
-});
+};
 
-// @route    DELETE /api/prompts/components/:id
-// @desc     Delete prompt component
-// @access   Admin only
-router.delete('/components/:id', auth, adminOnly, async (req, res) => {
+/**
+ * Delete prompt component
+ * @route DELETE /api/prompts/components/:id
+ */
+exports.deletePromptComponent = async (req, res) => {
   try {
     const { id } = req.params;
     const success = await promptManager.deletePromptComponent(id);
@@ -224,6 +233,4 @@ router.delete('/components/:id', auth, adminOnly, async (req, res) => {
     logger.error(`Error deleting prompt component: ${err.message}`);
     res.status(500).json({ message: 'Server error deleting component' });
   }
-});
-
-module.exports = router;
+};

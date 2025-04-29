@@ -1,42 +1,31 @@
-// server/src/models/PromptComponent.js
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const promptComponentSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
+const PromptComponentSchema = new Schema({
+  name: { 
+    type: String, 
+    required: true, 
+    unique: true 
   },
-  content: {
-    type: String,
-    required: true
+  content: { 
+    type: String, 
+    required: true 
   },
-  category: {
-    type: String,
-    required: true,
-    trim: true
+  category: { 
+    type: String, 
+    required: true 
   },
-  description: {
-    type: String,
-    trim: true
+  description: { 
+    type: String 
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  created: { 
+    type: Date, 
+    default: Date.now 
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  updated: { 
+    type: Date, 
+    default: Date.now 
   }
-}, { timestamps: true });
-
-// Pre-save hook to update the updatedAt field
-promptComponentSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  next();
 });
 
-const PromptComponent = mongoose.model('PromptComponent', promptComponentSchema);
-
-module.exports = PromptComponent;
+module.exports = mongoose.model('PromptComponent', PromptComponentSchema);

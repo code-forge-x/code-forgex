@@ -21,19 +21,18 @@ api.interceptors.request.use(
 );
 
 // Handle response errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle token expiration
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      // Redirect to login page if not already there
-      if (!window.location.pathname.includes('/signin')) {
-        window.location.href = '/signin';
-      }
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Change this line to match what your backend expects
+      config.headers['x-auth-token'] = token;
+      // You can keep the Authorization header too if needed
+      // config.headers.Authorization = `Bearer ${token}`;
     }
-    return Promise.reject(error);
-  }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
 // Add authentication functions

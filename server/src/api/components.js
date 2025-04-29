@@ -1,219 +1,172 @@
-// server/src/api/components.js
-/**
- * Components API Routes
- * Handles component generation, saving, and approval workflow
- * Part of the self-building system MVP
- */
 const express = require('express');
-const router = express.Router({ mergeParams: true }); // To access projectId from parent router
-const { simpleComponentService } = require('../services');
+const router = express.Router({ mergeParams: true }); // mergeParams allows access to projectId param
 const auth = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
-const os = require('os');
-
-// Set up file upload
-const upload = multer({ 
-  dest: path.join(os.tmpdir(), 'component-uploads'),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-    files: 10 // Max 10 files
-  }
-});
 
 /**
- * @route   POST /api/projects/:projectId/components/generate
- * @desc    Generate a component
- * @access  Private
+ * Component Routes
+ * Handles project component management
  */
-router.post('/generate', auth.projectAccess, async (req, res) => {
+
+// @route    GET /api/projects/:projectId/components
+// @desc     Get all project components
+// @access   Private
+router.get('/', auth, async (req, res) => {
   try {
-    const projectId = req.params.projectId;
-    const componentData = req.body;
+    const { projectId } = req.params;
     
-    if (!componentData || !componentData.name || !componentData.type || !componentData.framework) {
-      return res.status(400).json({ 
-        message: 'Component name, type, and framework are required' 
-      });
-    }
-    
-    // Generate component
-    const component = await simpleComponentService.generateComponent(
-      projectId,
-      componentData
-    );
-    
-    res.json(component);
-  } catch (error) {
-    console.error('Error generating component:', error);
+    // For now, return mock components
+    // Later, implement logic to fetch actual components
+    res.json([
+      {
+        id: 'comp-1',
+        name: 'Authentication Service',
+        type: 'service',
+        status: 'completed',
+        files: []
+      },
+      {
+        id: 'comp-2',
+        name: 'User Management',
+        type: 'service',
+        status: 'pending',
+        files: []
+      }
+    ]);
+  } catch (err) {
+    console.error(`Error fetching components: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-/**
- * @route   POST /api/projects/:projectId/components/generate-multiple
- * @desc    Generate multiple related components
- * @access  Private
- */
-router.post('/generate-multiple', auth.projectAccess, async (req, res) => {
+// @route    GET /api/projects/:projectId/components/:componentId
+// @desc     Get specific component details
+// @access   Private
+router.get('/:componentId', auth, async (req, res) => {
   try {
-    const projectId = req.params.projectId;
-    const { components, fromBlueprint } = req.body;
+    const { projectId, componentId } = req.params;
     
-    if (!components || !Array.isArray(components) || components.length === 0) {
-      return res.status(400).json({ message: 'Components array is required' });
-    }
-    
-    // Validate each component
-    for (const comp of components) {
-      if (!comp.name || !comp.type || !comp.framework) {
-        return res.status(400).json({ 
-          message: 'Each component must have a name, type, and framework' 
-        });
-      }
-    }
-    
-    // If generating from a blueprint, log this info
-    if (fromBlueprint) {
-      console.log(`Generating components from blueprint for project ${projectId}`);
-    }
-    
-    // Generate components
-    const generatedComponents = await simpleComponentService.generateRelatedComponents(
-      projectId,
-      components
-    );
-    
-    // If this was a blueprint-based generation, implement the approval workflow
-    if (fromBlueprint) {
-      await simpleComponentService.implementApprovalWorkflow(
-        projectId,
-        generatedComponents
-      );
-    }
-    
-    res.json(generatedComponents);
-  } catch (error) {
-    console.error('Error generating components:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-/**
- * @route   POST /api/projects/:projectId/components/save
- * @desc    Save generated components to files
- * @access  Private
- */
-router.post('/save', auth.projectAccess, async (req, res) => {
-  try {
-    const projectId = req.params.projectId;
-    const { components, outputDir } = req.body;
-    
-    if (!components || !Array.isArray(components) || components.length === 0) {
-      return res.status(400).json({ message: 'Components array is required' });
-    }
-    
-    if (!outputDir) {
-      return res.status(400).json({ message: 'Output directory is required' });
-    }
-    
-    // Save components
-    const results = [];
-    
-    for (const component of components) {
-      try {
-        const filePath = await simpleComponentService.saveComponent(outputDir, component);
-        results.push({
-          name: component.name,
-          success: true,
-          filePath
-        });
-      } catch (err) {
-        results.push({
-          name: component.name,
-          success: false,
-          error: err.message
-        });
-      }
-    }
-    
+    // For now, return a mock component
+    // Later, implement logic to fetch specific component
     res.json({
-      message: 'Components saved',
-      results
-    });
-  } catch (error) {
-    console.error('Error saving components:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-/**
- * @route   POST /api/projects/:projectId/components/approval
- * @desc    Implement approval workflow for generated components
- * @access  Private
- */
-router.post('/approval', auth.projectAccess, async (req, res) => {
-  try {
-    const projectId = req.params.projectId;
-    const { components } = req.body;
-    
-    if (!components || !Array.isArray(components) || components.length === 0) {
-      return res.status(400).json({ message: 'Components array is required' });
-    }
-    
-    // Implement approval workflow
-    const result = await simpleComponentService.implementApprovalWorkflow(
+      id: componentId,
       projectId,
-      components
-    );
-    
-    res.json(result);
-  } catch (error) {
-    console.error('Error implementing approval workflow:', error);
+      name: 'Component Details',
+      type: 'service',
+      status: 'in_progress',
+      description: 'This is a mock component for development',
+      files: [
+        {
+          name: 'index.js',
+          path: '/src/services/',
+          content: '// Sample code\nconsole.log("Hello World");',
+          language: 'javascript'
+        }
+      ],
+      dependencies: [],
+      version: 1,
+      created: new Date(),
+      updated: new Date()
+    });
+  } catch (err) {
+    console.error(`Error fetching component: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-/**
- * @route   POST /api/projects/:projectId/components/upload
- * @desc    Upload a component file
- * @access  Private
- */
-router.post('/upload', auth.projectAccess, upload.single('file'), async (req, res) => {
+// @route    POST /api/projects/:projectId/components
+// @desc     Generate new component
+// @access   Private
+router.post('/', auth, async (req, res) => {
   try {
-    const file = req.file;
-    const { componentName, componentType, framework } = req.body;
+    const { projectId } = req.params;
+    const { name, type, description } = req.body;
     
-    if (!file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
+    // For now, return a mock response
+    // Later, implement actual component generation
+    res.status(201).json({
+      id: `component-${Date.now()}`,
+      projectId,
+      name: name || 'New Component',
+      type: type || 'service',
+      description: description || 'Auto-generated component',
+      status: 'pending',
+      files: [],
+      dependencies: [],
+      version: 1,
+      created: new Date(),
+      updated: new Date()
+    });
+  } catch (err) {
+    console.error(`Error generating component: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    PUT /api/projects/:projectId/components/:componentId
+// @desc     Update component code
+// @access   Private
+router.put('/:componentId', auth, async (req, res) => {
+  try {
+    const { projectId, componentId } = req.params;
+    const updateData = req.body;
     
-    // Read file content
-    const content = await fs.readFile(file.path, 'utf8');
+    // For now, return the updated component as received
+    // Later, implement actual update logic
+    res.json({
+      id: componentId,
+      projectId,
+      ...updateData,
+      updated: new Date()
+    });
+  } catch (err) {
+    console.error(`Error updating component: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    GET /api/projects/:projectId/components/next
+// @desc     Get next component to generate
+// @access   Private
+router.get('/next', auth, async (req, res) => {
+  try {
+    const { projectId } = req.params;
     
-    // Create component object
-    const component = {
-      name: componentName || path.basename(file.originalname, path.extname(file.originalname)),
-      type: componentType || 'ui',
-      framework: framework || 'react',
-      code: content,
-      createdAt: new Date(),
-      generatedBy: 'upload'
-    };
+    // For now, return a mock next component
+    // Later, implement actual dependency resolution
+    res.json({
+      id: null, // Null ID indicates a new component to be created
+      projectId,
+      name: 'Next Component',
+      type: 'service',
+      description: 'This is the next component to be generated based on dependencies',
+      dependencies: []
+    });
+  } catch (err) {
+    console.error(`Error determining next component: ${err.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route    POST /api/projects/:projectId/components/:componentId/validate
+// @desc     Validate component code
+// @access   Private
+router.post('/:componentId/validate', auth, async (req, res) => {
+  try {
+    const { projectId, componentId } = req.params;
+    const { testCase } = req.body;
     
-    // Clean up temp file
-    setTimeout(async () => {
-      try {
-        await fs.unlink(file.path);
-      } catch (err) {
-        console.error('Error cleaning up temp file:', err);
-      }
-    }, 10000); // Clean up after 10 seconds
-    
-    res.json(component);
-  } catch (error) {
-    console.error('Error uploading component:', error);
+    // For now, return mock validation results
+    // Later, implement actual validation logic
+    res.json({
+      valid: true,
+      issues: [],
+      componentId,
+      projectId,
+      testCase,
+      validatedAt: new Date()
+    });
+  } catch (err) {
+    console.error(`Error validating component: ${err.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });

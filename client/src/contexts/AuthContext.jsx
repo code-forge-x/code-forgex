@@ -1,4 +1,4 @@
-// client/src/contexts/AuthContext.jsx
+// src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
@@ -95,6 +95,31 @@ export function AuthProvider({ children }) {
   };
   
   /**
+   * Register a new user
+   * @param {Object} userData - User registration data
+   * @returns {Object} - User data
+   */
+  const register = async (userData) => {
+    try {
+      const response = await axios.post('/api/auth/register', userData);
+      
+      const { token, user } = response.data;
+      
+      // Save token to localStorage
+      localStorage.setItem('token', token);
+      
+      // Update state
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      
+      return user;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  };
+  
+  /**
    * Log out the current user
    */
   const logout = () => {
@@ -109,6 +134,7 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     loading,
     login,
+    register, // New register function
     logout,
     checkAuthStatus
   };
@@ -119,3 +145,5 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+export default AuthContext;

@@ -2,19 +2,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import PrivateRoute from './components/auth/privateRoute';
-
+import PrivateRoute from './components/auth/PrivateRoute';
+import RoleProtected from './components/auth/RoleProtected';
+import Projects from './pages/Projects'; // Add this import
+import ProjectDetail from './pages/ProjectDetail'; // Add this import
 // Auth components
 import Login from './components/auth/Login';
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 
 // Chat and support components
-// import Chat from './components/chat/Chat';
 import SupportConversation from './components/Support/SupportConversation';
 
 // Project components
-// import ProjectChat from './components/chat/ProjectChat';
 import BlueprintViewer from './components/Blueprint/BlueprintViewer';
 import ComponentViewer from './components/Component/ComponentViewer';
 
@@ -23,20 +23,23 @@ import PromptManagement from './components/Admin/PromptManagement';
 
 // Layout and other components
 import Dashboard from './pages/Dashboard';
-// import Navbar from './components/layout/Navbar';
-// import Footer from './components/layout/Footer';
 import NotFound from './pages/NotFound';
+
+// Import CSS stylesheets
+import './styles/auth.css';
+import './styles/layout.css';
+import './styles/dashboard.css';
+import './styles/promptManagement.css'; // Add this new import for prompt management styles
 
 /**
  * Main App Component
- * Sets up routing and authentication
+ * Sets up routing with role-based access control
  */
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="app-container">
-          {/* <Navbar /> */}
           <main className="main-content">
             <Routes>
               {/* Public routes - accessible without authentication */}
@@ -57,26 +60,28 @@ function App() {
                 } 
               />
               
-              {/* Chat routes */}
-              {/* <Route 
-                path="/chat" 
+              {/* Projects routes */}
+              <Route 
+                path="/projects" 
                 element={
                   <PrivateRoute>
-                    <Chat />
+                    <Projects />
                   </PrivateRoute>
                 } 
-              /> */}
+              />
               
-              {/* Project-specific routes */}
-              {/* <Route 
-                path="/project/:projectId/chat" 
+              
+              
+              <Route 
+                path="/project/:projectId" 
                 element={
                   <PrivateRoute>
-                    <ProjectChat />
+                    <ProjectDetail />
                   </PrivateRoute>
                 } 
-              /> */}
+              />
               
+              {/* Project-specific routes - accessible to all authenticated users */}
               <Route 
                 path="/project/:projectId/support/:supportId?" 
                 element={
@@ -104,12 +109,14 @@ function App() {
                 } 
               />
               
-              {/* Admin routes */}
+              {/* Admin routes - only accessible by admins */}
               <Route 
                 path="/admin/prompts" 
                 element={
                   <PrivateRoute>
-                    <PromptManagement />
+                    <RoleProtected roles="admin" redirectTo="/dashboard">
+                      <PromptManagement />
+                    </RoleProtected>
                   </PrivateRoute>
                 } 
               />
@@ -118,7 +125,6 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
-          {/* <Footer /> */}
         </div>
       </Router>
     </AuthProvider>
