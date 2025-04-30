@@ -12,5 +12,5 @@ COPY . .
 # Expose backend port (should match your server port)
 EXPOSE 5000
 
-# Start in dev mode (uses nodemon)
-CMD ["npm", "run", "dev"]
+# Start in dev mode with enhanced file watching
+CMD ["nodemon", "--watch", "src", "--ext", "js,jsx,ts,tsx,json", "--exec", "npm", "run", "dev"]

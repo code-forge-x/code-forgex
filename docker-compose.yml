@@ -10,11 +10,14 @@ services:
     volumes:
       - ./client:/app
       - /app/node_modules
+      - /app/.vite
     environment:
       NODE_ENV: development
       VITE_API_URL: http://localhost:5000/api
+      WATCHPACK_POLLING: "true"  # Enable polling for better file watching
     depends_on:
       - server
+    command: sh -c "npm run dev -- --host"
 
   server:
     build:
@@ -36,6 +39,7 @@ services:
       TIMESCALE_PASSWORD: postgres
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      CHOKIDAR_USEPOLLING: "true"  # Enable polling for better file watching
     env_file:
       - .env
     depends_on:

@@ -20,7 +20,6 @@ import ComponentLibrary from './Prompts/ComponentLibrary';
  * Based on the promptManagementUIImplementation from the implementation guide
  */
 const PromptManagement = () => {
-  // State
   const [activeTab, setActiveTab] = useState('templates');
   const [selectedPrompt, setSelectedPrompt] = useState(null);
   const [prompts, setPrompts] = useState([]);
@@ -29,31 +28,26 @@ const PromptManagement = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  // Hooks
   const { currentUser } = useAuth();
   const { isAdmin, hasPermission } = useRoleAuth();
   const navigate = useNavigate();
   
-  // Check if user has admin permissions
   useEffect(() => {
     if (!isAdmin() && !hasPermission('manage_prompts')) {
       navigate('/dashboard');
     }
   }, [isAdmin, hasPermission, navigate]);
   
-  // Fetch prompts when component mounts
   useEffect(() => {
     fetchPrompts();
   }, []);
   
-  // Fetch components when component mounts
   useEffect(() => {
     if (activeTab === 'components') {
       fetchComponents();
     }
   }, [activeTab]);
   
-  // Function to fetch prompts
   const fetchPrompts = async () => {
     setLoading(true);
     try {
@@ -72,7 +66,6 @@ const PromptManagement = () => {
     }
   };
   
-  // Function to fetch components
   const fetchComponents = async () => {
     setLoading(true);
     try {
@@ -91,13 +84,11 @@ const PromptManagement = () => {
     }
   };
   
-  // Handle prompt selection
   const handlePromptSelect = (prompt) => {
     setSelectedPrompt(prompt);
     setActiveTab('editor');
   };
   
-  // Handle prompt creation
   const handleCreatePrompt = () => {
     setSelectedPrompt({
       id: null,
@@ -110,7 +101,6 @@ const PromptManagement = () => {
     setActiveTab('editor');
   };
   
-  // Handle tab changes
   const handleTabChange = (tab) => {
     // If we're leaving the editor tab, clear selection
     if (activeTab === 'editor' && tab !== 'editor') {

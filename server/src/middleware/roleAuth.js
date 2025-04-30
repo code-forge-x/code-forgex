@@ -1,24 +1,48 @@
 const logger = require('../utils/logger');
 
-// Role-based middleware
-exports.adminOnly = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    logger.warn(`Access denied: user ${req.user?.id} attempted to access admin route`);
-    return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
+/**
+ * Middleware to check if user has admin role
+ */
+const adminOnly = (req, res, next) => {
+  try {
+    if (!req.user) {
+      logger.warn('Admin check failed: No user in request');
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (req.user.role !== 'admin') {
+      logger.warn(`Admin access denied for user role: ${req.user.role}`);
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+
+    next();
+  } catch (err) {
+    logger.error(`Role check error: ${err.message}`);
+    res.status(500).json({ message: 'Server error during role check' });
   }
-  next();
 };
 
-exports.hasRole = (roles) => {
+/**
+ * Middleware to check if user has one of the allowed roles
+ */
+const hasRole = (roles) => {
   return (req, res, next) => {
-    // Support single role or array of roles
-    const requiredRoles = Array.isArray(roles) ? roles : [roles];
-    
-    if (!req.user || !requiredRoles.includes(req.user.role)) {
-      logger.warn(`Access denied: user ${req.user?.id} with role ${req.user?.role} attempted to access route requiring ${requiredRoles.join(' or ')}`);
-      return res.status(403).json({ message: 'Access denied. Insufficient privileges.' });
+    try {
+      if (!req.user) {
+        logger.warn('Role check failed: No user in request');
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      if (!roles.includes(req.user.role)) {
+        logger.warn(`Access denied for user role: ${req.user.role}`);
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+
+      next();
+    } catch (err) {
+      logger.error(`Role check error: ${err.message}`);
+      res.status(500).json({ message: 'Server error during role check' });
     }
-    next();
   };
 };
 
@@ -34,4 +58,9 @@ exports.supportAccess = (req, res, next) => {
   // Implementation will be expanded when support model is fully implemented
   // For now, we'll just pass through
   next();
+};
+
+module.exports = {
+  adminOnly,
+  hasRole
 };

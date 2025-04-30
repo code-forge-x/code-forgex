@@ -1,47 +1,46 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
+import {
+  Home as HomeIcon,
+  AccountTree as ProjectIcon,
+  Chat as ChatIcon,
+  Settings as SettingsIcon,
+  Person as PersonIcon,
+  Logout as LogoutIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon
+} from '@mui/icons-material';
 
 /**
  * Dashboard Component
- * Main dashboard showing projects and activities
+ * Admin panel with sidebar navigation
  */
 const Dashboard = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [projects, setProjects] = useState([]);
   const [supportThreads, setSupportThreads] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
-      
       try {
-        // Get token from localStorage
         const token = localStorage.getItem('token');
+        if (!token) throw new Error('No authentication token found');
         
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
+        const config = { headers: { 'x-auth-token': token } };
+        const [projectsResponse, supportResponse] = await Promise.all([
+          axios.get('/api/projects', config),
+          axios.get('/api/support', config)
+        ]);
         
-        // Set up axios config
-        const config = {
-          headers: {
-            'x-auth-token': token
-          }
-        };
-        
-        // Get user's projects
-        const projectsResponse = await axios.get('/api/projects', config);
-        
-        // Get user's support conversations
-        const supportResponse = await axios.get('/api/support', config);
-        
-        // Update state with data
         setProjects(projectsResponse.data || []);
         setSupportThreads(supportResponse.data || []);
         setError('');
@@ -56,123 +55,129 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
+  const menuItems = [
+    { path: '/dashboard', icon: <HomeIcon />, label: 'Dashboard' },
+    { path: '/projects', icon: <ProjectIcon />, label: 'Projects' },
+    { path: '/support', icon: <ChatIcon />, label: 'Support' },
+    { path: '/admin/prompts', icon: <SettingsIcon />, label: 'Admin Settings' },
+    { path: '/profile', icon: <PersonIcon />, label: 'Profile' }
+  ];
+
   return (
-    <DashboardLayout>
-      <div className="dashboard-header">
-        <h1>Welcome, {currentUser?.name || 'User'}</h1>
-        <p>Here's an overview of your projects and activities</p>
-      </div>
-      
-      {error && <div className="error-message">{error}</div>}
-      
-      {isLoading ? (
-        <div className="loading-indicator">Loading dashboard data...</div>
-      ) : (
-        <div className="dashboard-grid">
-          {/* Projects Section */}
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h2>Your Projects</h2>
-              <Link to="/projects" className="view-all-link">View All</Link>
-            </div>
-            
-            <div className="card-content">
-              {projects.length > 0 ? (
-                <ul className="project-list">
-                  {projects.slice(0, 5).map((project) => (
-                    <li key={project._id} className="project-item">
-                      <Link to={`/project/${project._id}`} className="project-link">
-                        <span className="project-name">{project.name}</span>
-                        <span className="project-status">{formatStatus(project.status)}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="empty-state">
-                  <p>You don't have any projects yet.</p>
-                  <Link to="/projects/new" className="create-new-button">
-                    Create New Project
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Support Section */}
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h2>Support Conversations</h2>
-              <Link to="/support" className="view-all-link">View All</Link>
-            </div>
-            
-            <div className="card-content">
-              {supportThreads.length > 0 ? (
-                <ul className="support-list">
-                  {supportThreads.slice(0, 5).map((thread) => (
-                    <li key={thread.supportId} className="support-item">
-                      <Link to={`/support/${thread.supportId}`} className="support-link">
-                        <span className="support-title">{thread.title}</span>
-                        <span className="support-status">{formatStatus(thread.status)}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="empty-state">
-                  <p>No support conversations found.</p>
-                  <Link to="/support/new" className="create-new-button">
-                    Create Support Ticket
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Quick Actions */}
-          <div className="dashboard-card">
-            <div className="card-header">
-              <h2>Quick Actions</h2>
-            </div>
-            
-            <div className="card-content">
-              <div className="quick-actions">
-                <Link to="/projects/new" className="action-button">
-                  Create New Project
-                </Link>
-                
-                <Link to="/support/new" className="action-button">
-                  Open Support Ticket
-                </Link>
-                
-                {currentUser && currentUser.role === 'admin' && (
-                  <Link to="/admin/prompts" className="action-button admin-action">
-                    Manage Prompts
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
+    <div className="admin-dashboard">
+      {/* Sidebar */}
+      <div className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+        <div className="sidebar-header">
+          <h2>CodeForegX</h2>
+          <button 
+            className="toggle-sidebar" 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            {isSidebarOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
         </div>
-      )}
-    </DashboardLayout>
+        
+        <nav className="sidebar-nav">
+          {menuItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+            >
+              {item.icon}
+              {isSidebarOpen && <span>{item.label}</span>}
+            </Link>
+          ))}
+        </nav>
+        
+        <div className="sidebar-footer">
+          <button className="logout-button" onClick={handleLogout}>
+            <LogoutIcon />
+            {isSidebarOpen && <span>Logout</span>}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="main-content">
+        <div className="content-header">
+          <h1>Welcome, {currentUser?.name}</h1>
+        </div>
+
+        <div className="dashboard-content">
+          {isLoading ? (
+            <div className="loading">Loading...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : (
+            <>
+              {/* Projects Section */}
+              <section className="dashboard-section">
+                <h2>Recent Projects</h2>
+                <div className="projects-grid">
+                  {projects.slice(0, 4).map((project) => (
+                    <Link 
+                      key={project._id} 
+                      to={`/project/${project._id}`}
+                      className="project-card"
+                    >
+                      <h3>{project.name}</h3>
+                      <p>{project.description}</p>
+                      <span className={`status ${project.status}`}>
+                        {formatStatus(project.status)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              {/* Support Threads Section */}
+              <section className="dashboard-section">
+                <h2>Recent Support Threads</h2>
+                <div className="support-list">
+                  {supportThreads.slice(0, 5).map((thread) => (
+                    <Link 
+                      key={thread._id} 
+                      to={`/project/${thread.projectId}/support/${thread._id}`}
+                      className="support-item"
+                    >
+                      <div className="thread-info">
+                        <h3>{thread.subject}</h3>
+                        <p>{thread.lastMessage}</p>
+                      </div>
+                      <span className={`status ${thread.status}`}>
+                        {formatStatus(thread.status)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+        </div>
+      </main>
+    </div>
   );
 };
 
-/**
- * Format status string for display
- * @param {string} status - Status string from API
- * @returns {string} - Formatted status
- */
 const formatStatus = (status) => {
-  if (!status) return 'Unknown';
-  
-  // Convert status like 'requirements_gathering' to 'Requirements Gathering'
-  return status
-    .replace(/_/g, ' ')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  const statusMap = {
+    active: 'Active',
+    completed: 'Completed',
+    pending: 'Pending',
+    open: 'Open',
+    closed: 'Closed'
+  };
+  return statusMap[status] || status;
 };
 
 export default Dashboard;

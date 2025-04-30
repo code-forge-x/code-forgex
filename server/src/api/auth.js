@@ -14,10 +14,19 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role = 'client' } = req.body;
     
+    logger.debug(`Registration attempt for email: ${email}`);
+    
+    // Validate input
+    if (!name || !email || !password) {
+      logger.warn('Registration attempt with missing required fields');
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    
     // Check if user already exists
     let user = await User.findOne({ email });
     
     if (user) {
+      logger.warn(`Registration attempt for existing email: ${email}`);
       return res.status(400).json({ message: 'User already exists' });
     }
     
@@ -26,7 +35,7 @@ router.post('/register', async (req, res) => {
       name,
       email,
       password,
-      role: role === 'admin' ? 'client' : role // Prevent creating admin through API
+      role: role.toLowerCase() === 'admin' ? 'client' : role.toLowerCase()
     });
     
     // Hash password
@@ -34,6 +43,7 @@ router.post('/register', async (req, res) => {
     user.password = await bcrypt.hash(password, salt);
     
     await user.save();
+    logger.info(`New user registered: ${email}`);
     
     // Create JWT payload
     const payload = {
@@ -49,13 +59,16 @@ router.post('/register', async (req, res) => {
       config.jwtSecret,
       { expiresIn: config.jwtExpiration },
       (err, token) => {
-        if (err) throw err;
+        if (err) {
+          logger.error(`Token generation error for new user ${email}: ${err.message}`);
+          return res.status(500).json({ message: 'Error generating token' });
+        }
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
       }
     );
   } catch (err) {
-    logger.error(`Registration error: ${err.message}`);
-    res.status(500).json({ message: 'Server error during registration' });
+    logger.error(`Registration error: ${err.message}\nStack: ${err.stack}`);
+    res.status(500).json({ message: 'Server error during registration', error: err.message });
   }
 });
 
@@ -66,10 +79,20 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
+    // Debug log
+    logger.debug(`Login attempt for email: ${email}`);
+    
+    // Validate input
+    if (!email || !password) {
+      logger.warn('Login attempt with missing email or password');
+      return res.status(400).json({ message: 'Missing email or password' });
+    }
+    
     // Find user by email
     const user = await User.findOne({ email });
     
     if (!user) {
+      logger.warn(`Login attempt for non-existent user: ${email}`);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     
@@ -77,6 +100,7 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     
     if (!isMatch) {
+      logger.warn(`Invalid password for user: ${email}`);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     
@@ -92,19 +116,26 @@ router.post('/login', async (req, res) => {
       }
     };
     
+    // Debug log JWT secret
+    logger.debug(`Using JWT secret: ${config.jwtSecret.substring(0, 4)}...`);
+    
     // Generate token
     jwt.sign(
       payload,
       config.jwtSecret,
       { expiresIn: config.jwtExpiration },
       (err, token) => {
-        if (err) throw err;
+        if (err) {
+          logger.error(`Token generation error for user ${email}: ${err.message}`);
+          return res.status(500).json({ message: 'Error generating token' });
+        }
+        logger.info(`Successful login for user: ${email}`);
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
       }
     );
   } catch (err) {
-    logger.error(`Login error: ${err.message}`);
-    res.status(500).json({ message: 'Server error during login' });
+    logger.error(`Login error: ${err.message}\nStack: ${err.stack}`);
+    res.status(500).json({ message: 'Server error during login', error: err.message });
   }
 });
 
@@ -113,17 +144,21 @@ router.post('/login', async (req, res) => {
 // @access   Private
 router.get('/verify', auth, async (req, res) => {
   try {
+    logger.debug(`Token verification attempt for user ID: ${req.user.id}`);
+    
     // User is already loaded in req by auth middleware
     const user = await User.findById(req.user.id).select('-password');
     
     if (!user) {
-      return res.status(401).json({ valid: false });
+      logger.warn(`Token verification failed - user not found: ${req.user.id}`);
+      return res.status(401).json({ valid: false, message: 'User not found' });
     }
     
     // Update last active
     user.lastActive = Date.now();
     await user.save();
     
+    logger.info(`Successful token verification for user: ${user.email}`);
     res.json({ 
       valid: true, 
       user: { 
@@ -134,8 +169,8 @@ router.get('/verify', auth, async (req, res) => {
       } 
     });
   } catch (err) {
-    logger.error(`Token verification error: ${err.message}`);
-    res.status(500).json({ valid: false, message: 'Server error during verification' });
+    logger.error(`Token verification error: ${err.message}\nStack: ${err.stack}`);
+    res.status(500).json({ valid: false, message: 'Server error during verification', error: err.message });
   }
 });
 

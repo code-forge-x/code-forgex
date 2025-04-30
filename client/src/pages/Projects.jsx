@@ -17,9 +17,21 @@ import {
   IconButton,
   Chip,
   CircularProgress,
-  Divider
+  Divider,
+  InputAdornment
 } from '@mui/material';
-import { Add, Code, Chat, Delete, Edit, MoreVert } from '@mui/icons-material';
+import { 
+  Add, 
+  Code, 
+  Chat, 
+  Delete, 
+  Edit, 
+  MoreVert,
+  Search,
+  Folder,
+  Description,
+  Build
+} from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -30,6 +42,7 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newProject, setNewProject] = useState({
     name: '',
     description: '',
@@ -62,7 +75,6 @@ const Projects = () => {
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    // Reset form data
     setNewProject({
       name: '',
       description: '',
@@ -100,9 +112,6 @@ const Projects = () => {
       const response = await api.post('/api/projects', newProject);
       setProjects([...projects, response.data]);
       handleDialogClose();
-      
-      // Navigate to the new project
-      navigate(`/projects/${response.data._id}`);
     } catch (error) {
       logger.error('Failed to create project', error);
       alert('Failed to create project. Please try again.');
@@ -123,145 +132,177 @@ const Projects = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '80vh' 
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    project.techStack.some(tech => tech.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">My Projects</Typography>
-        <Button 
-          variant="contained" 
-          startIcon={<Add />} 
-          onClick={handleDialogOpen}
-        >
-          New Project
-        </Button>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" sx={{ 
+          color: '#d4d4d4',
+          fontWeight: 500,
+          mb: 2
+        }}>
+          Projects
+        </Typography>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <TextField
+            placeholder="Search projects..."
+            variant="outlined"
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{
+              width: '300px',
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#252526',
+                color: '#d4d4d4',
+                '& fieldset': {
+                  borderColor: '#333',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3c3c3c',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#007acc',
+                },
+              },
+              '& .MuiInputBase-input': {
+                color: '#d4d4d4',
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: '#d4d4d4' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+          
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleDialogOpen}
+            sx={{
+              backgroundColor: '#007acc',
+              '&:hover': {
+                backgroundColor: '#006bb3',
+              },
+            }}
+          >
+            New Project
+          </Button>
+        </Box>
       </Box>
 
-      {error && (
-        <Paper 
-          sx={{ 
-            p: 2, 
-            mb: 3, 
-            bgcolor: 'error.light', 
-            color: 'error.contrastText' 
-          }}
-        >
-          {error}
-        </Paper>
-      )}
-
-      {projects.length === 0 && !loading ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            No projects yet
-          </Typography>
-          <Typography variant="body1" color="text.secondary" paragraph>
-            Start by creating a new project to begin developing with AI assistance.
-          </Typography>
-          <Button 
-            variant="contained" 
-            startIcon={<Add />} 
-            onClick={handleDialogOpen}
-          >
-            Create First Project
-          </Button>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress sx={{ color: '#007acc' }} />
+        </Box>
+      ) : error ? (
+        <Paper sx={{ p: 3, backgroundColor: '#252526', color: '#d4d4d4' }}>
+          <Typography color="error">{error}</Typography>
         </Paper>
       ) : (
         <Grid container spacing={3}>
-          {projects.map(project => (
+          {filteredProjects.map((project) => (
             <Grid item xs={12} sm={6} md={4} key={project._id}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 4
-                  }
-                }}
-              >
+              <Card sx={{ 
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#252526',
+                border: '1px solid #333',
+                '&:hover': {
+                  borderColor: '#3c3c3c',
+                  boxShadow: '0 0 0 1px #3c3c3c',
+                },
+              }}>
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Folder sx={{ color: '#007acc', mr: 1 }} />
+                    <Typography variant="h6" component="h2" sx={{ 
+                      color: '#d4d4d4',
+                      fontWeight: 500,
+                    }}>
                       {project.name}
                     </Typography>
-                    <IconButton 
-                      size="small" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteProject(project._id);
-                      }}
-                    >
-                      <Delete fontSize="small" />
-                    </IconButton>
                   </Box>
                   
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary" 
-                    sx={{ 
-                      mb: 2,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical'
-                    }}
-                  >
-                    {project.description || 'No description provided'}
+                  <Typography variant="body2" sx={{ 
+                    color: '#d4d4d4',
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}>
+                    <Description sx={{ color: '#d4d4d4', mr: 1, fontSize: '1rem' }} />
+                    {project.description}
                   </Typography>
-                  
-                  <Box sx={{ mb: 1 }}>
-                    {project.techStack && project.techStack.map((tech, index) => (
-                      <Chip 
-                        key={index} 
-                        label={tech} 
-                        size="small" 
-                        sx={{ mr: 0.5, mb: 0.5 }} 
+
+                  <Divider sx={{ borderColor: '#333', my: 2 }} />
+
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {project.techStack.map((tech, index) => (
+                      <Chip
+                        key={index}
+                        label={tech}
+                        size="small"
+                        icon={<Build sx={{ color: '#d4d4d4' }} />}
+                        sx={{
+                          backgroundColor: '#1e1e1e',
+                          color: '#d4d4d4',
+                          border: '1px solid #333',
+                          '& .MuiChip-icon': {
+                            color: '#007acc',
+                          },
+                        }}
                       />
                     ))}
                   </Box>
-                  
-                  <Typography variant="caption" color="text.secondary">
-                    Created: {new Date(project.createdAt).toLocaleDateString()}
-                  </Typography>
                 </CardContent>
-                
-                <Divider />
-                
-                <CardActions>
-                  <Button 
-                    size="small" 
-                    startIcon={<Edit />} 
-                    component={Link} 
-                    to={`/projects/${project._id}`}
-                  >
-                    Edit
-                  </Button>
-                  <Button 
-                    size="small" 
-                    startIcon={<Chat />} 
-                    component={Link} 
-                    to={`/chat/${project._id}`}
-                  >
-                    Chat
-                  </Button>
+
+                <CardActions sx={{ 
+                  p: 2,
+                  borderTop: '1px solid #333',
+                  justifyContent: 'space-between'
+                }}>
+                  <Box>
+                    <IconButton
+                      component={Link}
+                      to={`/admin/projects/${project._id}`}
+                      sx={{ color: '#d4d4d4' }}
+                    >
+                      <Code />
+                    </IconButton>
+                    <IconButton
+                      component={Link}
+                      to={`/admin/projects/${project._id}/support`}
+                      sx={{ color: '#d4d4d4' }}
+                    >
+                      <Chat />
+                    </IconButton>
+                  </Box>
+                  
+                  <Box>
+                    <IconButton
+                      component={Link}
+                      to={`/admin/projects/${project._id}/edit`}
+                      sx={{ color: '#d4d4d4' }}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => deleteProject(project._id)}
+                      sx={{ color: '#d4d4d4' }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
                 </CardActions>
               </Card>
             </Grid>
@@ -269,8 +310,18 @@ const Projects = () => {
         </Grid>
       )}
 
-      {/* New Project Dialog */}
-      <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+      <Dialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#252526',
+            color: '#d4d4d4',
+          },
+        }}
+      >
         <DialogTitle>Create New Project</DialogTitle>
         <DialogContent>
           <TextField
@@ -283,7 +334,28 @@ const Projects = () => {
             variant="outlined"
             value={newProject.name}
             onChange={handleInputChange}
-            required
+            sx={{
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#1e1e1e',
+                color: '#d4d4d4',
+                '& fieldset': {
+                  borderColor: '#333',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3c3c3c',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#007acc',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: '#d4d4d4',
+              },
+              '& .MuiInputBase-input': {
+                color: '#d4d4d4',
+              },
+            }}
           />
           <TextField
             margin="dense"
@@ -296,22 +368,77 @@ const Projects = () => {
             rows={4}
             value={newProject.description}
             onChange={handleInputChange}
+            sx={{
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#1e1e1e',
+                color: '#d4d4d4',
+                '& fieldset': {
+                  borderColor: '#333',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3c3c3c',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#007acc',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: '#d4d4d4',
+              },
+              '& .MuiInputBase-input': {
+                color: '#d4d4d4',
+              },
+            }}
           />
           <TextField
             margin="dense"
             name="techStack"
-            label="Tech Stack (comma separated)"
+            label="Tech Stack (comma-separated)"
             type="text"
             fullWidth
             variant="outlined"
             value={newProject.techStack.join(', ')}
             onChange={handleTechStackChange}
-            helperText="e.g. React, Node.js, MongoDB"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#1e1e1e',
+                color: '#d4d4d4',
+                '& fieldset': {
+                  borderColor: '#333',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3c3c3c',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#007acc',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: '#d4d4d4',
+              },
+              '& .MuiInputBase-input': {
+                color: '#d4d4d4',
+              },
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button onClick={createProject} variant="contained">Create</Button>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid #333' }}>
+          <Button onClick={handleDialogClose} sx={{ color: '#d4d4d4' }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={createProject}
+            variant="contained"
+            sx={{
+              backgroundColor: '#007acc',
+              '&:hover': {
+                backgroundColor: '#006bb3',
+              },
+            }}
+          >
+            Create
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

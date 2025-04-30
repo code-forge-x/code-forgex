@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "codeforegx",
   "version": "1.0.0",
   "description": "AI-assisted financial trading code generation platform",
@@ -17,5 +17,11 @@
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "react-diff-view": "^3.3.1"
   }
 }

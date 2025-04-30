@@ -1,6 +1,6 @@
 // src/contexts/AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 /**
  * Authentication Context
@@ -21,49 +21,36 @@ export function AuthProvider({ children }) {
    * Check if the user is already authenticated
    * Verifies the token with the backend
    */
-  const checkAuthStatus = useCallback(async () => {
-    setLoading(true);
-    
+  const verifyAuth = async () => {
     const token = localStorage.getItem('token');
-    
     if (!token) {
-      setIsAuthenticated(false);
-      setCurrentUser(null);
       setLoading(false);
+      setCurrentUser(null);
+      setIsAuthenticated(false);
       return;
     }
-    
     try {
-      // Add your API endpoint to verify token
-      const response = await axios.get('/api/auth/verify', {
-        headers: {
-          'x-auth-token': token
-        }
-      });
-      
+      const response = await api.get('/api/auth/verify');
       if (response.data.valid) {
         setCurrentUser(response.data.user);
         setIsAuthenticated(true);
       } else {
-        // Token invalid, clear it
         localStorage.removeItem('token');
-        setIsAuthenticated(false);
         setCurrentUser(null);
+        setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Auth verification failed:', error);
       localStorage.removeItem('token');
-      setIsAuthenticated(false);
       setCurrentUser(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
   
-  // Check authentication status when the component mounts
   useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+    verifyAuth();
+  }, []);
   
   /**
    * Log in a user
@@ -72,25 +59,20 @@ export function AuthProvider({ children }) {
    * @returns {Object} - User data
    */
   const login = async (email, password) => {
+    setLoading(true);
     try {
-      const response = await axios.post('/api/auth/login', {
-        email,
-        password
-      });
-      
-      const { token, user } = response.data;
-      
-      // Save token to localStorage
+      const response = await api.post('/api/auth/login', { email, password });
+      const { token } = response.data;
       localStorage.setItem('token', token);
-      
-      // Update state
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      
-      return user;
+      // Immediately verify token and update state
+      await verifyAuth();
+      return response.data.user;
     } catch (error) {
-      console.error('Login failed:', error);
+      setCurrentUser(null);
+      setIsAuthenticated(false);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -100,22 +82,20 @@ export function AuthProvider({ children }) {
    * @returns {Object} - User data
    */
   const register = async (userData) => {
+    setLoading(true);
     try {
-      const response = await axios.post('/api/auth/register', userData);
-      
-      const { token, user } = response.data;
-      
-      // Save token to localStorage
+      const response = await api.post('/api/auth/register', userData);
+      const { token } = response.data;
       localStorage.setItem('token', token);
-      
-      // Update state
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      
-      return user;
+      // Immediately verify token and update state
+      await verifyAuth();
+      return response.data.user;
     } catch (error) {
-      console.error('Registration failed:', error);
+      setCurrentUser(null);
+      setIsAuthenticated(false);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -134,14 +114,13 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     loading,
     login,
-    register, // New register function
-    logout,
-    checkAuthStatus
+    register,
+    logout
   };
   
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

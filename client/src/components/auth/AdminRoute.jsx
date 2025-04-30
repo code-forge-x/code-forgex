@@ -16,11 +16,11 @@ const AdminRoute = ({ children }) => {
   
   if (!isAuthenticated) {
     // Redirect to login but save the location they were trying to access
-    return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
   
   // Check if user has admin role
-  if (!currentUser.isAdmin) {
+  if (currentUser.role !== 'admin') {
     // Redirect to dashboard if not admin
     return <Navigate to="/dashboard" replace />;
   }

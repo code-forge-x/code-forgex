@@ -8,9 +8,10 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://server:5000', // 👈 Use your backend service name in docker-compose.yml
+        target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api')
       }
     }
   }

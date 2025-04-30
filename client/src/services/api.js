@@ -8,7 +8,7 @@ const api = axios.create({
   }
 });
 
-// Add auth token to requests if available
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -17,38 +17,67 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Handle response errors
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Change this line to match what your backend expects
-      config.headers['x-auth-token'] = token;
-      // You can keep the Authorization header too if needed
-      // config.headers.Authorization = `Bearer ${token}`;
+// Response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      if (error.response.status === 401) {
+        // Only redirect if we're not already on the login page
+        if (window.location.pathname !== '/login') {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
+      } else if (error.response.status === 404) {
+        console.error('API endpoint not found:', error.response.config.url);
+      } else if (error.response.status === 500) {
+        console.error('Server error:', error.response.data);
+      }
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
+    return Promise.reject(error);
+  }
 );
 
-// Add authentication functions
+// Authentication functions
 export const login = async (email, password) => {
-  const response = await api.post('/api/auth/login', { email, password });
-  return response.data;
+  try {
+    const response = await api.post('/api/auth/login', { email, password });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Login failed');
+    }
+    throw new Error('Network error during login');
+  }
 };
 
 export const register = async (userData) => {
-  const response = await api.post('/api/auth/register', userData);
-  return response.data;
+  try {
+    const response = await api.post('/api/auth/register', userData);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Registration failed');
+    }
+    throw new Error('Network error during registration');
+  }
 };
 
 export const verifyToken = async () => {
-  const response = await api.get('/api/auth/verify');
-  return response.data;
+  try {
+    const response = await api.get('/api/auth/verify');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Token verification failed');
+    }
+    throw new Error('Network error during token verification');
+  }
 };
 
 export default api;
