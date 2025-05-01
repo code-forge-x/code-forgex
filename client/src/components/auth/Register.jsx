@@ -1,5 +1,4 @@
-// client/src/components/auth/Login.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -14,27 +13,18 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSnackbar } from 'notistack';
 
-/**
- * Login Component
- * Handles user authentication and redirects
- */
-const Login = () => {
+const Register = () => {
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, user } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,20 +36,19 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
-      return;
+    
+    if (formData.password !== formData.confirmPassword) {
+      return setError('Passwords do not match');
     }
 
     try {
       setError('');
       setLoading(true);
-      await login(formData.email, formData.password);
-      enqueueSnackbar('Login successful!', { variant: 'success' });
-      // Navigation will be handled by the useEffect when user state changes
+      await register(formData.email, formData.password, formData.username);
+      enqueueSnackbar('Registration successful!', { variant: 'success' });
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to sign in');
+      setError(err.message || 'Failed to create an account');
       enqueueSnackbar(error, { variant: 'error' });
     } finally {
       setLoading(false);
@@ -79,7 +68,7 @@ const Login = () => {
         }}
       >
         <Typography component="h1" variant="h5">
-          Sign in
+          Register
         </Typography>
         {error && (
           <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
@@ -91,11 +80,22 @@ const Login = () => {
             margin="normal"
             required
             fullWidth
+            id="username"
+            label="Username"
+            name="username"
+            autoComplete="username"
+            autoFocus
+            value={formData.username}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
             id="email"
             label="Email Address"
             name="email"
             autoComplete="email"
-            autoFocus
             value={formData.email}
             onChange={handleChange}
           />
@@ -107,8 +107,20 @@ const Login = () => {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={formData.password}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="confirmPassword"
+            label="Confirm Password"
+            type="password"
+            id="confirmPassword"
+            autoComplete="new-password"
+            value={formData.confirmPassword}
             onChange={handleChange}
           />
           <Button
@@ -118,11 +130,11 @@ const Login = () => {
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            Register
           </Button>
           <Box sx={{ textAlign: 'center' }}>
-            <Link component={RouterLink} to="/register" variant="body2">
-              Don't have an account? Sign up
+            <Link component={RouterLink} to="/login" variant="body2">
+              Already have an account? Sign in
             </Link>
           </Box>
         </Box>
@@ -131,4 +143,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register; 
