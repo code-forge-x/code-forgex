@@ -1,26 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { auth, adminAuth } = require('../middleware/auth');
-const {
-  getPrompts,
-  createPrompt,
-  updatePrompt,
-  deletePrompt
-} = require('../controllers/promptController');
+const { authenticate } = require('../middleware/auth');
+const promptController = require('../controllers/promptController');
 
-// Apply admin authentication middleware to all routes
-router.use(adminAuth);
+// Apply authentication middleware to all routes
+router.use(authenticate);
 
-// Get all prompts
-router.get('/', getPrompts);
+// Define routes
+router.get('/', promptController.getAllPrompts);
+router.get('/:id', promptController.getPromptById);
+router.post('/', promptController.createPrompt);
+router.put('/:id', promptController.updatePrompt);
+router.delete('/:id', promptController.deletePrompt);
 
-// Create a new prompt
-router.post('/', createPrompt);
-
-// Update a prompt
-router.put('/:id', updatePrompt);
-
-// Delete a prompt
-router.delete('/:id', deletePrompt);
-
-module.exports = router; 
+module.exports = router;

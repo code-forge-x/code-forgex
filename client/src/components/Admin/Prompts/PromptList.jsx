@@ -52,7 +52,7 @@ const PromptList = ({ prompts, loading, onSelectPrompt, onCreatePrompt, onRefres
   const handleToggleActive = async (prompt) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/prompts/${prompt.name}/${prompt.version}`, 
+      await axios.put(`//prompts/${prompt.name}/${prompt.version}`, 
         { ...prompt, active: !prompt.active },
         { headers: { 'x-auth-token': token } }
       );

@@ -29,7 +29,7 @@ const VersionHistory = ({ prompts, loading }) => {
     setHistoryLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/prompts/${name}/versions`, {
+      const response = await axios.get(`//prompts/${name}/versions`, {
         headers: {
           'x-auth-token': token
         }
@@ -77,7 +77,7 @@ const VersionHistory = ({ prompts, loading }) => {
       
       // Get comparison between versions
       const response = await axios.get(
-        `/api/prompts/${promptName}/compare/${sortedVersions[0]}/${sortedVersions[1]}`, 
+        `//prompts/${promptName}/compare/${sortedVersions[0]}/${sortedVersions[1]}`, 
         {
           headers: {
             'x-auth-token': token

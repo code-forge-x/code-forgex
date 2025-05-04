@@ -25,7 +25,7 @@ const PerformanceMetrics = ({ prompts, loading }) => {
       const token = localStorage.getItem('token');
       
       // Build URL with query parameters
-      let url = '/api/prompts/performance';
+      let url = '//prompts/performance';
       const params = new URLSearchParams();
       
       if (timeRange !== 'all') {

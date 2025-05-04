@@ -1,79 +1,124 @@
-﻿# CodeForegX Project
+﻿# Template Management System
+
+A robust template management system for code generation, specifically designed for trading strategies and indicators. This system allows users to create, manage, and version control code templates with parameter validation and dependency management.
+
+## Features
+
+- Template creation and management
+- Version control for templates
+- Parameter validation and type checking
+- Dependency management
+- Code generation with parameter substitution
+- Role-based access control
+- API rate limiting and security
+- Comprehensive test coverage
 
 ## Prerequisites
-- Node.js (v16 or higher)
-- Docker Desktop (with Docker Compose)
-- PowerShell (for running setup scripts)
 
-## Setup Instructions
+- Node.js >= 14.0.0
+- MongoDB >= 4.0.0
+- npm or yarn
 
-1. **Copy component code from blueprint/amendment docs**
-   - Add the code to the respective files
+## Installation
 
-2. **Install dependencies**
-   `
-   npm run install-all
-   `
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/template-management.git
+cd template-management
+```
 
-3. **Generate JWT Secret**
-   `
-   npm run generate-jwt
-   `
-   - Copy the output and replace the JWT_SECRET value in the .env file
-   - Add your Claude API key to the .env file
+2. Install dependencies:
+```bash
+npm install
+```
 
-4. **Start Docker containers**
-   `
-   npm run docker:build
-   `
+3. Create a `.env` file in the root directory with the following variables:
+```env
+MONGODB_URI=mongodb://localhost:27017/template-management
+JWT_SECRET=your_jwt_secret
+PORT=3000
+```
 
-5. **Create admin user**
-   `
-   npm run create-admin
-   `
+4. Start the server:
+```bash
+npm start
+```
 
-6. **Access the application**
-   - Frontend: http://localhost:3000
-   - API: http://localhost:5000
-   - MongoDB UI: http://localhost:8081
+For development:
+```bash
+npm run dev
+```
 
-## Development
+## API Endpoints
 
-- Start both frontend and backend in development mode:
-  `
-  npm run dev
-  `
+### Templates
 
-- Start only the backend:
-  `
-  npm run server
-  `
+- `POST /api/templates` - Create a new template
+- `GET /api/templates` - Get all templates (with filtering)
+- `GET /api/templates/:id` - Get a specific template
+- `PUT /api/templates/:id` - Update a template
+- `DELETE /api/templates/:id` - Delete a template
+- `GET /api/templates/:id/versions` - Get template versions
+- `GET /api/templates/:id/versions/:version` - Get specific version
+- `POST /api/templates/:id/generate` - Generate code from template
 
-- Start only the frontend:
-  `
-  npm run client
-  `
+## Testing
 
-## Docker Commands
+Run tests:
+```bash
+npm test
+```
 
-- Start all containers:
-  `
-  npm run docker:up
-  `
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
 
-- Rebuild and start all containers:
-  `
-  npm run docker:build
-  `
+## Seeding the Database
 
-- Stop all containers:
-  `
-  npm run docker:down
-  `
+To seed the database with sample templates:
+```bash
+npm run seed
+```
 
-## Directory Structure
+## Project Structure
 
-- /client: React frontend
-- /server: Express backend
-- /database: Database initialization scripts
-# code-forgex
+```
+template-management/
+├── server/
+│   ├── controllers/     # Route controllers
+│   ├── middleware/      # Custom middleware
+│   ├── models/          # Mongoose models
+│   ├── routes/          # API routes
+│   ├── services/        # Business logic
+│   ├── templates/       # Sample templates
+│   ├── tests/           # Test files
+│   ├── utils/           # Utility functions
+│   ├── app.js           # Express app
+│   └── server.js        # Server entry point
+├── .env                 # Environment variables
+├── .gitignore
+├── package.json
+└── README.md
+```
+
+## Security
+
+- JWT-based authentication
+- Role-based access control
+- API rate limiting
+- Input validation
+- Helmet for security headers
+- CORS configuration
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

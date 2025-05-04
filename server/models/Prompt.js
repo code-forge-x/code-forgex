@@ -19,6 +19,39 @@ const PromptSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  version: {
+    type: Number,
+    default: 1
+  },
+  status: {
+    type: String,
+    enum: ['active', 'archived', 'draft'],
+    default: 'active'
+  },
+  dependencies: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Prompt'
+  }],
+  parameters: {
+    type: Array,
+    default: []
+  },
+  tags: {
+    type: [String],
+    default: []
+  },
+  metadata: {
+    type: Object,
+    default: {}
+  },
   createdAt: {
     type: Date,
     default: Date.now

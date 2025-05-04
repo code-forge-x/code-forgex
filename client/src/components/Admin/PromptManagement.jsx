@@ -52,7 +52,7 @@ const PromptManagement = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/prompts', {
+      const response = await axios.get('//prompts', {
         headers: {
           'x-auth-token': token
         }
@@ -70,7 +70,7 @@ const PromptManagement = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/prompts/components', {
+      const response = await axios.get('//prompts/components', {
         headers: {
           'x-auth-token': token
         }
@@ -123,11 +123,11 @@ const PromptManagement = () => {
       
       if (promptData.id) {
         // Update existing prompt
-        await axios.put(`/api/prompts/${promptData.name}/${promptData.version}`, promptData, { headers });
+        await axios.put(`//prompts/${promptData.name}/${promptData.version}`, promptData, { headers });
         setSuccess('Prompt template updated successfully');
       } else {
         // Create new prompt
-        await axios.post('/api/prompts', promptData, { headers });
+        await axios.post('//prompts', promptData, { headers });
         setSuccess('Prompt template created successfully');
       }
       
@@ -159,11 +159,11 @@ const PromptManagement = () => {
       
       if (componentData.id) {
         // Update existing component
-        await axios.put(`/api/prompts/components/${componentData.id}`, componentData, { headers });
+        await axios.put(`//prompts/components/${componentData.id}`, componentData, { headers });
         setSuccess('Component updated successfully');
       } else {
         // Create new component
-        await axios.post('/api/prompts/components', componentData, { headers });
+        await axios.post('//prompts/components', componentData, { headers });
         setSuccess('Component created successfully');
       }
       

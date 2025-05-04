@@ -4,56 +4,61 @@ const bcrypt = require('bcryptjs');
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    trim: true
+    required: [true, 'Please provide a name'],
+    trim: true,
+    minlength: [2, 'Name must be at least 2 characters long']
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Please provide an email'],
     unique: true,
-    trim: true,
-    lowercase: true
+    match: [
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      'Please provide a valid email'
+    ]
   },
   password: {
     type: String,
-    required: true
+    required: [true, 'Please provide a password'],
+    minlength: [6, 'Password must be at least 6 characters long'],
+    select: false
   },
   role: {
     type: String,
-    required: true,
-    enum: ['admin', 'developer', 'client'],
-    default: 'client'
+    enum: ['user', 'developer', 'admin'],
+    default: 'user'
   },
-  status: {
-    type: String,
-    enum: ['active', 'inactive'],
-    default: 'active'
+  isActive: {
+    type: Boolean,
+    default: true
   },
   lastLogin: {
     type: Date
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  timestamps: true
 });
 
 // Hash password before saving
 UserSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
+  if (!this.isModified('password')) {
+    return next();
   }
-  this.updatedAt = Date.now();
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-// Method to compare password
+// Compare password method
 UserSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Update last login
+UserSchema.methods.updateLastLogin = async function() {
+  this.lastLogin = new Date();
+  await this.save();
 };
 
 module.exports = mongoose.model('User', UserSchema); 

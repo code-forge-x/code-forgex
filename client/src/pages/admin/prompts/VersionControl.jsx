@@ -63,7 +63,7 @@ const VersionControl = () => {
   const fetchVersions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/prompts/${id}/versions`);
+      const response = await axios.get(`//prompts/${id}/versions`);
       setVersions(response.data);
       setError(null);
     } catch (err) {
@@ -76,7 +76,7 @@ const VersionControl = () => {
   const handleCreateVersion = async () => {
     try {
       setLoading(true);
-      await axios.post(`/api/prompts/${id}/versions`, newVersion);
+      await axios.post(`//prompts/${id}/versions`, newVersion);
       setNewVersion({ name: '', description: '', type: 'minor' });
       fetchVersions();
     } catch (err) {
@@ -90,7 +90,7 @@ const VersionControl = () => {
     if (window.confirm('Are you sure you want to restore this version?')) {
       try {
         setLoading(true);
-        await axios.post(`/api/prompts/${id}/versions/${versionId}/restore`);
+        await axios.post(`//prompts/${id}/versions/${versionId}/restore`);
         fetchVersions();
       } catch (err) {
         setError('Error restoring version');
@@ -104,7 +104,7 @@ const VersionControl = () => {
     if (window.confirm('Are you sure you want to delete this version?')) {
       try {
         setLoading(true);
-        await axios.delete(`/api/prompts/${id}/versions/${versionId}`);
+        await axios.delete(`//prompts/${id}/versions/${versionId}`);
         fetchVersions();
       } catch (err) {
         setError('Error deleting version');

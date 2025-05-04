@@ -71,7 +71,7 @@ const PromptTester = ({ prompts, loading }) => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/prompts/test', {
+      const response = await axios.post('//prompts/test', {
         promptId: selectedPrompt,
         variables
       }, {

@@ -64,7 +64,7 @@ const PromptEditor = () => {
   const fetchPrompt = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/prompts/${id}`);
+      const response = await api.get(`//prompts/${id}`);
       setPrompt(response.data);
       setError(null);
     } catch (err) {
@@ -134,9 +134,9 @@ const PromptEditor = () => {
     try {
       setLoading(true);
       if (id) {
-        await api.put(`/api/prompts/${id}`, prompt);
+        await api.put(`//prompts/${id}`, prompt);
       } else {
-        await api.post('/api/prompts', prompt);
+        await api.post('//prompts', prompt);
       }
       navigate('/admin/prompts');
     } catch (err) {
@@ -150,7 +150,7 @@ const PromptEditor = () => {
     if (window.confirm('Are you sure you want to delete this prompt?')) {
       try {
         setLoading(true);
-        await api.delete(`/api/prompts/${id}`);
+        await api.delete(`//prompts/${id}`);
         navigate('/admin/prompts');
       } catch (err) {
         setError('Error deleting prompt');

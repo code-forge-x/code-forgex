@@ -79,7 +79,7 @@ const PromptPerformance = () => {
   const fetchMetrics = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/prompts/${id}/metrics?range=${timeRange}`);
+      const response = await axios.get(`//prompts/${id}/metrics?range=${timeRange}`);
       setMetrics(response.data);
       setError(null);
     } catch (err) {
@@ -91,7 +91,7 @@ const PromptPerformance = () => {
 
   const fetchUsageData = async () => {
     try {
-      const response = await axios.get(`/api/prompts/${id}/usage?range=${timeRange}`);
+      const response = await axios.get(`//prompts/${id}/usage?range=${timeRange}`);
       setUsageData(response.data);
     } catch (err) {
       console.error('Error fetching usage data:', err);
@@ -100,7 +100,7 @@ const PromptPerformance = () => {
 
   const fetchErrorData = async () => {
     try {
-      const response = await axios.get(`/api/prompts/${id}/errors?range=${timeRange}`);
+      const response = await axios.get(`//prompts/${id}/errors?range=${timeRange}`);
       setErrorData(response.data);
     } catch (err) {
       console.error('Error fetching error data:', err);
@@ -109,7 +109,7 @@ const PromptPerformance = () => {
 
   const fetchUserStats = async () => {
     try {
-      const response = await axios.get(`/api/prompts/${id}/user-stats?range=${timeRange}`);
+      const response = await axios.get(`//prompts/${id}/user-stats?range=${timeRange}`);
       setUserStats(response.data);
     } catch (err) {
       console.error('Error fetching user stats:', err);
@@ -118,7 +118,7 @@ const PromptPerformance = () => {
 
   const fetchErrorDetails = async () => {
     try {
-      const response = await axios.get(`/api/prompts/${id}/error-details?range=${timeRange}`);
+      const response = await axios.get(`//prompts/${id}/error-details?range=${timeRange}`);
       setErrorDetails(response.data);
     } catch (err) {
       console.error('Error fetching error details:', err);
@@ -182,7 +182,7 @@ const PromptPerformance = () => {
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
-            onClick={() => window.open(`/api/prompts/${id}/performance-report`, '_blank')}
+            onClick={() => window.open(`//prompts/${id}/performance-report`, '_blank')}
           >
             Export Report
           </Button>

@@ -57,7 +57,7 @@ const EnhancedChatInput = ({ onSendMessage, projectId, disabled = false }) => {
     setLoading(true);
     try {
       // Try to get project-specific templates first - aligning with the ProjectPrompt model
-      let response = await axios.get(`/api/prompts/project/${projectId}`, {
+      let response = await axios.get(`//prompts/project/${projectId}`, {
         headers: {
           'x-auth-token': localStorage.getItem('token')
         }
@@ -65,7 +65,7 @@ const EnhancedChatInput = ({ onSendMessage, projectId, disabled = false }) => {
       
       // If no project templates, get global templates - aligning with the Prompt model
       if (response.data.length === 0) {
-        response = await axios.get('/api/prompts', {
+        response = await axios.get('//prompts', {
           headers: {
             'x-auth-token': localStorage.getItem('token')
           }
